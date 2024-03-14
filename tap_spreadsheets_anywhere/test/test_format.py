@@ -101,6 +101,21 @@ TEST_TABLE_SPEC = {
             "start_date": "2017-05-01T00:00:00Z",
             "key_properties": [],
             "format": "excel"
+        },
+        {
+            "path": "ftp://anonymous@ftp.ncbi.nlm.nih.gov/gene/DATA",
+            "name": "gene_orthologs",
+            "pattern": "gene_orthologs.gz",
+            "start_date": "2017-05-01T00:00:00Z",
+            "key_properties": [],
+            "format": "csv",
+            "delimiter": "\t",
+            "prefer_number_vs_integer": True,
+            "prefer_schema_as_string": True,
+            "universal_newlines": True,
+            "sample_rate": 5,
+            "max_sampling_read": 10,
+            "max_sampled_files": 3,
         }
     ]
 }
@@ -209,6 +224,18 @@ class TestFormatHandler(unittest.TestCase):
         row = next(iterator)
         self.assertTrue(len(row)>1,"Not able to read a row.")
 
+    
+    def test_ftp_bucket(self):
+        table_spec = TEST_TABLE_SPEC['tables'][8]
+        modified_since = dateutil.parser.parse(table_spec['start_date'])
+        target_files = file_utils.get_matching_objects(table_spec, modified_since)
+        assert len(target_files) == 1
+
+        target_uri = table_spec['path'] + '/' + table_spec['pattern']
+        iterator = get_row_iterator(table_spec, target_uri)
+
+        row = next(iterator)
+        self.assertTrue('tax_id' in row, "Row did not contain expected data")
 
 class TestFormatHandlerExcelXlsxSkipInitial:
     """pytests to validate Skip Initial for Excel `.xlsx` files works as expected."""

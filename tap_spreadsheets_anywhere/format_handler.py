@@ -1,5 +1,5 @@
 import smart_open
-
+from smart_open.compression import INFER_FROM_EXTENSION
 from codecs import StreamReader
 import tap_spreadsheets_anywhere.csv_handler
 import tap_spreadsheets_anywhere.excel_handler
@@ -37,7 +37,10 @@ def get_streamreader(uri, universal_newlines=True, newline='', open_mode='r', en
     # However, reading binary streams needs a `BufferedReader`.
     if "b" in open_mode:
         encoding = None
-    streamreader = smart_open.open(uri, open_mode, newline=newline, errors='surrogateescape', encoding=encoding, **kwargs)
+    compression = INFER_FROM_EXTENSION
+    if ".gz" in uri:
+        compression = ".gz"
+    streamreader = smart_open.open(uri, open_mode, newline=newline, errors='surrogateescape', encoding=encoding, compression=compression, **kwargs)
 
     if not universal_newlines and isinstance(streamreader, StreamReader):
         return monkey_patch_streamreader(streamreader)
